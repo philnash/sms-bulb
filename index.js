@@ -15,7 +15,11 @@ app.get("/", (req, res) => {
 app.post("/sms", (req, res) => {
   console.log(req.body.Body);
   const colorMatch = req.body.Body.match(/#[\dA-Fa-f]{6}/);
-  if (colorMatch !== null) {
+  const disco = req.body.Body.match(/disco/gi);
+  if (disco !== null) {
+    sse.send("disco");
+    res.send(`<Response><Message>DISCO Time! 💃💃💃</Message></Response>`);
+  } else if (colorMatch !== null) {
     const hexColor = colorMatch[0]
     const colorArray = hexColor.split("");
     const rgb = []

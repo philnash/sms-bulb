@@ -20,12 +20,25 @@
       width: 100%;
       padding: 20px;
     }
+    header {
+      position: fixed;
+      background: rgba(255,255,255,0.8);
+      left: 0;
+      right: 0;
+      top: 0;
+      padding: 20px;
+    }
+    button {
+      margin-top:200px;
+    }
   </style>
+
 </head>
 <body>
-  <h1>Set the colour of the Bulb!</h1>
-  <h1>Send an SMS to +447481342722 with a hexcode (#123456)</h1>
-
+  <header>
+    <h1>Set the colour of the Bulb!</h1>
+    <h1>Send an SMS to +447481342722 or +4915735982293 with a hexcode (#123456)</h1>
+  </header>
   <ul>
 
   </ul>
@@ -40,6 +53,8 @@
     const button = document.querySelector("button");
     const list = document.querySelector("ul");
 
+    let currentColor;
+
     function appendLi(colors) {
       const li = document.createElement("li");
       li.style.backgroundColor = `rgb(${colors.join(",")})`;
@@ -50,27 +65,77 @@
       return new Uint8Array([0x56, red, green, blue, 0x00, 0xf0, 0xaa]);
     }
 
+    function createAnalyserNode(audioSource, audioApi) {
+      const analyserNode = audioApi.createAnalyser();
+      analyserNode.fftSize = 2048;
+      audioSource.connect(analyserNode);
+      return analyserNode;
+    }
+
     function prepareDevice(device) {
       let characteristic;
       let connected = false;
+      let disco = false;
       device.gatt.connect()
         .then(server => server.getPrimaryService(SERVICE_ID))
         .then(service => service.getCharacteristic(CHARACTERISTIC_ID))
         .then(characteristic => {
           characteristic = characteristic;
           console.log(characteristic);
-          connected = true;
           console.log("connected");
           source.addEventListener("message", function(event) {
-            console.log(event);
-            if (connected) {
-              const colors = JSON.parse(event.data);
-              const colorValue = getColorValue(...colors);
+            const colors = JSON.parse(event.data);
+            if(colors === "disco") {
+              disco = true;
+              // setTimeout((() => disco = false), 10000);
+            } else {
+              disco = false;
+              const colorValue = getColorValue(...colors, 0x00);
+              currentColor = colors;
               characteristic.writeValue(colorValue);
               appendLi(colors);
               console.log(`Set colours to ${colors}`);
             }
           });
+          navigator.getUserMedia(
+            {audio:true},
+            function gotStream(stream) {
+              var audioApi = new AudioContext();
+              // Create an audio input from the stream.
+              const audioSource = audioApi.createMediaStreamSource(stream);
+              const analyserNode = createAnalyserNode(audioSource, audioApi);
+              analyserNode.fftSize = 256;
+              let bufferLength = analyserNode.frequencyBinCount;
+              let frequencyData = new Uint8Array(bufferLength);
+              let mask = [1, 1, 0];
+              let prevValue = [0, 0, 0];
+              function animateStuff() {
+                setTimeout(animateStuff, 100);
+                if(disco){
+                  analyserNode.getByteFrequencyData(frequencyData);
+                  console.log(frequencyData);
+                  // do some stuff here - like play with the frequencyData and whatever you want to change/control
+                  if(currentColor) {
+                    // const newColor = [frequencyData[20]*mask[0], frequencyData[40]*mask[1], frequencyData[60]*mask[2]];
+                    let newColor = [frequencyData[9]*mask[0], frequencyData[26]*mask[1], frequencyData[42]*mask[2]];
+                    if (newColor[0] <= prevValue[0]) {
+                      newColor = [0, 0, 0];
+                    }
+                    prevValue = newColor;
+                    let temp = mask.splice(0,1);
+                    mask.push(...temp);
+                    const colorValue = getColorValue(...newColor);
+                    console.log(newColor);
+                    characteristic.writeValue(colorValue);
+                  }
+                }
+              };
+              animateStuff()
+            },
+            function(err) {
+              console.log("The following error occured: " + err);
+            }
+          );
         }).catch(err => {
           console.error("BLE connection failed!", err);
         });
