@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SMS Bulb</title>
+  <style type="text/css">
+    * {
+      padding:0;
+      margin:0;
+      font-family: Helvetica;
+    }
+    body {
+      padding: 20px;
+      color:#333;
+    }
+    ul {
+      list-style-type: none;
+      width: 100%;
+    }
+    ul li {
+      width: 100%;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Set the colour of the Bulb!</h1>
+  <h1>Send an SMS to +447481342722 with a hexcode (#123456)</h1>
+
+  <ul>
+
+  </ul>
+
+  <button>Scan</button>
+
+  <script type="text/javascript">
+    const SERVICE_ID = 0xffe5;
+    const CHARACTERISTIC_ID = 0xffe9;
+    const DEVICE_ID = "LEDBLE-0309009C";
+
+    const button = document.querySelector("button");
+    const list = document.querySelector("ul");
+
+    function appendLi(colors) {
+      const li = document.createElement("li");
+      li.style.backgroundColor = `rgb(${colors.join(",")})`;
+      list.appendChild(li);
+    }
+
+    function getColorValue(red, green, blue) {
+      return new Uint8Array([0x56, red, green, blue, 0x00, 0xf0, 0xaa]);
+    }
+
+    function prepareDevice(device) {
+      let characteristic;
+      let connected = false;
+      device.gatt.connect()
+        .then(server => server.getPrimaryService(SERVICE_ID))
+        .then(service => service.getCharacteristic(CHARACTERISTIC_ID))
+        .then(characteristic => {
+          characteristic = characteristic;
+          console.log(characteristic);
+          connected = true;
+          console.log("connected");
+          source.addEventListener("message", function(event) {
+            console.log(event);
+            if (connected) {
+              const colors = JSON.parse(event.data);
+              const colorValue = getColorValue(...colors);
+              characteristic.writeValue(colorValue);
+              appendLi(colors);
+              console.log(`Set colours to ${colors}`);
+            }
+          });
+        }).catch(err => {
+          console.error("BLE connection failed!", err);
+        });
+      source = new EventSource("/stream");
+
+      console.log("listening for colours");
+    }
+
+    button.addEventListener("click", function(event) {
+      navigator.bluetooth.requestDevice({
+        filters: [ { services: [SERVICE_ID], name: DEVICE_ID }]
+      }).then(prepareDevice);
+    })
+
+  </script>
+</body>
+</html>
