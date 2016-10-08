@@ -81,7 +81,7 @@
 
     button.addEventListener("click", function(event) {
       navigator.bluetooth.requestDevice({
-        filters: [ { services: [SERVICE_ID], name: DEVICE_ID }]
+        filters: [ { services: [SERVICE_ID] }]
       }).then(prepareDevice);
     })
 
