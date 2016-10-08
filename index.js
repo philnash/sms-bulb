@@ -29,6 +29,26 @@ app.post("/sms", (req, res) => {
   }
 });
 
+app.post("/voice", (req, res) => {
+  if (req.body.Digits) {
+    if (req.body.Digits === "1") {
+      sse.send([255, 0, 0]);
+    } else if (req.body.Digits === "2") {
+      sse.send([0, 255, 0]);
+    } else if (req.body.Digits === "3") {
+      sse.send([0, 0, 255]);
+    }
+  }
+  res.send(`
+    <Response>
+      <Gather action="/voice" numDigits="1">
+        <Say loop="3" voice="alice" language="en-GB">Dial 1 for red. Dial 2 for green. Dial 3 for blue</Say>
+        <Pause length="5" />
+      </Gather>
+    </Response>
+  `);
+})
+
 app.get("/stream", sse.init);
 
 const port = process.env.PORT || 3000;
