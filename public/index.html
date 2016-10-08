@@ -7,30 +7,56 @@
       padding:0;
       margin:0;
       font-family: Helvetica;
+      box-sizing: border-box;
     }
     body {
-      padding: 20px;
+      padding: 20px 0;
       color:#333;
     }
     ul {
       list-style-type: none;
       width: 100%;
+      margin-top:150px;
     }
     ul li {
       width: 100%;
       padding: 20px;
     }
+    header{
+      position: fixed;
+      top:0;
+      left:0;
+      right:0;
+      background-color: rgba(255,255,255,0.8);
+    }
+    header, header h1, header h2{
+      text-align: center;
+      line-height: 1.5;
+    }
+    header button {
+      font-size: 24px;
+      background: #666;
+      border: none;
+      padding: 10px;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h1>Set the colour of the Bulb!</h1>
-  <h1>Send an SMS to +447481342722 with a hexcode (#123456)</h1>
+  <header>
+    <h1>Set the colour of the Bulb!</h1>
+    <h2>Send an SMS to +447481342722 with a hexcode (#123456)</h2>
+    <h2>Or call +442033195232 and listen to the instructions</h2>
+    <button>Scan</button>
+  </header>
 
   <ul>
-
+  <li>hello</li>
   </ul>
 
-  <button>Scan</button>
+
 
   <script type="text/javascript">
     const SERVICE_ID = 0xffe5;
