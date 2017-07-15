@@ -2,7 +2,6 @@
   "name": "sms-bulb",
   "version": "1.0.0",
   "description": "",
-  "engines" : { "node" : "8.1.4" },
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -16,6 +15,6 @@
     "express-sse": "^0.2.1"
   },
   "engines": {
-    "node": "6.2.2"
+    "node": "8.1.4"
   }
 }
